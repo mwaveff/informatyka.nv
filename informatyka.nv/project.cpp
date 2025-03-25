@@ -64,14 +64,15 @@ public:
         }
     }
 
-    void markTaskAsCompleted(int index) {
+    void markTaskAsNotCompleted(int index) {
         if (index >= 0 && index < taskCount) {
-            tasks[index].isCompleted = true;
+            tasks[index].isCompleted = false;
         }
         else {
             cout << "Incorrect task index!\n";
         }
     }
+
 
     void markTaskANcompleted(int index) {
         if (index >= 0 && index < taskCount) {
@@ -130,34 +131,36 @@ public:
     void loadFromFile(const string& filename) {
         ifstream file(filename);
 
-        if (file.is_open()) {
-            taskCount = 0;
-            string line;
+        if (!file) {
+            cout << "File not found. Creating a new task file...\n";
+            ofstream newFile(filename); 
+            newFile.close();
+            return;
+        }
 
-            while (getline(file, line)) {
-                size_t pos1 = line.find('|');
+        taskCount = 0;
+        string line;
+        while (getline(file, line)) {
+            size_t pos1 = line.find('|');
+            size_t pos2 = line.find('|', pos1 + 1);
+            size_t pos3 = line.find('|', pos2 + 1);
 
-                size_t pos2 = line.find('|', pos1 + 1);
-
-                size_t pos3 = line.find('|', pos2 + 1);
-
-                string title = line.substr(0, pos1);
-
-                string description = line.substr(pos1 + 1, pos2 - pos1 - 1);
-
-                string deadline = line.substr(pos2 + 1, pos3 - pos2 - 1);
-
-                bool isCompleted = stoi(line.substr(pos3 + 1));
-
-                addTask(title, description, deadline);
-                tasks[taskCount - 1].isCompleted = isCompleted;
+            if (pos1 == string::npos || pos2 == string::npos || pos3 == string::npos) {
+                cout << "Error reading file format!\n";
+                continue;
             }
-            file.close();
+
+            string title = line.substr(0, pos1);
+            string description = line.substr(pos1 + 1, pos2 - pos1 - 1);
+            string deadline = line.substr(pos2 + 1, pos3 - pos2 - 1);
+            bool isCompleted = stoi(line.substr(pos3 + 1));
+
+            addTask(title, description, deadline);
+            tasks[taskCount - 1].isCompleted = isCompleted;
         }
-        else {
-            cout << "Could not open file for reading!\n";
-        }
+        file.close();
     }
+
 };
 
 // MAIN
@@ -225,7 +228,7 @@ int main() {
             int index;
             cout << "Enter the task number: ";
             cin >> index;
-            manager.markTaskAsCompleted(index - 1);
+            manager.markTaskAsNotCompleted(index - 1);
             break;
 
         }
